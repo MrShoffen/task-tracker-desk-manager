@@ -12,9 +12,10 @@ import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
+    @EntityGraph(value = "Task.withSubtasks", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Task> findByIdAndUserId(UUID taskId, UUID userId);
 
     @EntityGraph(value = "Task.withSubtasks", type = EntityGraph.EntityGraphType.FETCH)
-    @Query("SELECT t FROM Task t WHERE t.userId = :userId AND t.parentTask IS NULL")
+    @Query("SELECT t FROM Task t WHERE t.userId = :userId AND t.mainTaskId IS NULL")
     List<Task> findUsersRootTasks(@Param("userId") UUID userId);
 }

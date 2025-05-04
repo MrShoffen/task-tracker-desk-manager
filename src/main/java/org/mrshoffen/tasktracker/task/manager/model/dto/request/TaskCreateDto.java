@@ -15,5 +15,5 @@ public record TaskCreateDto(
         @Size(max = 500, message = "Максимальное описание задачи - 500 символов")
         String description,
 
-        UUID parentTask) {
+        UUID mainTaskId) {
 }

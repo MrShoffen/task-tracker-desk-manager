@@ -16,6 +16,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+
 @NamedEntityGraph(
         name = "Task.withSubtasks",
         attributeNodes = @NamedAttributeNode("subtasks")
@@ -43,10 +44,10 @@ public class Task {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @JoinColumn(name = "parent_task")
-    private UUID parentTask;
+    @JoinColumn(name = "main_task_id")
+    private UUID mainTaskId;
 
-    @OneToMany(mappedBy = "parentTask", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "mainTaskId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Task> subtasks = new ArrayList<>();
 
 }

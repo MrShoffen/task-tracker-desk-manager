@@ -5,8 +5,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mrshoffen.tasktracker.task.manager.model.dto.request.TaskCreateDto;
-import org.mrshoffen.tasktracker.task.manager.model.dto.response.TaskChildResponseDto;
-import org.mrshoffen.tasktracker.task.manager.model.dto.response.TaskParentResponseDto;
+import org.mrshoffen.tasktracker.task.manager.model.dto.response.SubtaskResponseDto;
+import org.mrshoffen.tasktracker.task.manager.model.dto.response.MainTaskResponseDto;
 import org.mrshoffen.tasktracker.task.manager.model.entity.Task;
 
 import java.util.List;
@@ -20,12 +20,12 @@ public interface TaskMapper {
     @Mapping(target = "userId", source = "userId")
     Task toEntity(TaskCreateDto taskCreateDto, UUID userId);
 
-    @Mapping(source = "subtasks", target = "subtasks", qualifiedByName = "childTasks")
-    TaskParentResponseDto toParentDto(Task entity);
+    @Mapping(source = "subtasks", target = "subtasks", qualifiedByName = "subtasks")
+    MainTaskResponseDto toMainTaskDto(Task entity);
 
-    @Named("childTasks")
-    List<TaskChildResponseDto> toChildDtoList(List<Task> list);
+    @Named("subtasks")
+    List<SubtaskResponseDto> toSubtaskDtoList(List<Task> list);
 
-    TaskChildResponseDto toChildTaskDto(Task entity);
+    SubtaskResponseDto toSubtaskDto(Task entity);
 
 }

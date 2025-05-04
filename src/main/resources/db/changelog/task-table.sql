@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS tasks
     description VARCHAR(500),
     created_at TIMESTAMP NOT NULL,
     user_id     UUID         NOT NULL,
-    parent_task UUID REFERENCES tasks (id) ON DELETE CASCADE,
+    main_task_id UUID REFERENCES tasks (id) ON DELETE CASCADE,
     completed   BOOLEAN DEFAULT FALSE
 );
