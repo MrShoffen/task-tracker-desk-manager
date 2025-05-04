@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,12 @@ public class Task {
 
     @Column(name = "description", length = 500)
     private String description;
+
+    @Column(name = "completed")
+    private Boolean completed = false;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

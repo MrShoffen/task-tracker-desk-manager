@@ -34,8 +34,17 @@ public class TaskController {
     @GetMapping
     ResponseEntity<List<TaskParentResponseDto>> getTasks(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId) {
 
-    List<TaskParentResponseDto> allUsersTasks = taskService.getAllUsersTasks(userId);
+        List<TaskParentResponseDto> allUsersTasks = taskService.getAllUsersTasks(userId);
         return ResponseEntity.ok(allUsersTasks);
+    }
+
+    @DeleteMapping("{taskId}")
+    ResponseEntity<Void> getTask(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                 @PathVariable UUID taskId) {
+
+        taskService.deleteTask(taskId, userId);
+
+        return ResponseEntity.noContent().build();
     }
 }
 

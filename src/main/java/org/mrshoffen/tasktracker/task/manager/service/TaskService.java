@@ -24,32 +24,40 @@ public class TaskService {
 
     public TaskParentResponseDto createTask(TaskCreateDto taskCreateDto, UUID userId) {
         if (taskCreateDto.parentTask() != null) {
-            validateCorrectTaskStructure(taskCreateDto.parentTask(), userId);
+            Task task = getUserTaskWithId(taskCreateDto.parentTask(), userId);
+            validateCorrectParentTaskStructure(task);
         }
 
         Task task = taskMapper.toEntity(taskCreateDto, userId);
         taskRepository.save(task);
 
-        return taskMapper.toDto(task);
+        return taskMapper.toParentDto(task);
     }
 
-    private void validateCorrectTaskStructure(UUID taskId, UUID userId) {
-        Optional<Task> task = taskRepository.findByIdAndUserId(taskId, userId);
-
-        if (task.isEmpty()) {
-            throw new TaskNotFoundException("Задача с id %s не найдена у пользователя".formatted(taskId.toString()));
-        }
-        if(task.get().getParentTask() != null){
-            throw new TaskStructureException("У задачи %s есть родитель. Максимальная вложенность задач - 2".formatted(taskId.toString()));
+    private void validateCorrectParentTaskStructure(Task parentTask) {
+        if (parentTask.getParentTask() != null) {
+            throw new TaskStructureException("У задачи %s есть родитель. Максимальная вложенность задач - 2"
+                    .formatted(parentTask.getId().toString()));
         }
     }
 
     public List<TaskParentResponseDto> getAllUsersTasks(UUID userId) {
         return taskRepository
-                .findRootTasksByUser(userId)
+                .findUsersRootTasks(userId)
                 .stream()
-                .map(taskMapper::toDto)
+                .map(taskMapper::toParentDto)
                 .toList();
+    }
 
+    public void deleteTask(UUID taskId, UUID userId) {
+        Task task = getUserTaskWithId(taskId, userId);
+        taskRepository.delete(task);
+    }
+
+    private Task getUserTaskWithId(UUID taskId, UUID userId) {
+        return taskRepository.findByIdAndUserId(taskId, userId)
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Задача с id %s не найдена у пользователя".formatted(taskId.toString()))
+                );
     }
 }
