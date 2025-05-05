@@ -23,7 +23,7 @@ kafka-user:
 
 spring:
   application:
-    name: task-manager
+    name: task-manager-ws
   profiles:
     active: discovery-service-user, postgres-user
   config:

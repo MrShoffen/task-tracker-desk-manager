@@ -2,15 +2,15 @@ package org.mrshoffen.tasktracker.task.manager.advice;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.mrshoffen.tasktracker.task.manager.exception.TaskAlreadyExistsException;
 import org.mrshoffen.tasktracker.task.manager.exception.TaskNotFoundException;
 import org.mrshoffen.tasktracker.task.manager.exception.TaskStructureException;
-import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.Nullable;
-import org.springframework.web.ErrorResponse;
+import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -64,7 +64,7 @@ public class TaskControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleUserAlreadyExistException(TaskNotFoundException e) {
+    public ResponseEntity<ProblemDetail> handleTaskNotFoundException(TaskNotFoundException e) {
         ProblemDetail problem = generateProblemDetail(NOT_FOUND, e);
         return ResponseEntity.status(NOT_FOUND).body(problem);
     }
@@ -73,6 +73,12 @@ public class TaskControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleTaskStructureException(TaskStructureException e) {
         ProblemDetail problem = generateProblemDetail(BAD_REQUEST, e);
         return ResponseEntity.status(BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(TaskAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleTaskAlreadyExistsException(TaskAlreadyExistsException e) {
+        ProblemDetail problem = generateProblemDetail(CONFLICT, e);
+        return ResponseEntity.status(CONFLICT).body(problem);
     }
 
     private ProblemDetail generateProblemDetail(HttpStatus status, Exception ex) {

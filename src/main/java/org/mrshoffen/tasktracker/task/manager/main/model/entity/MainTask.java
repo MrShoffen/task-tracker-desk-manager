@@ -1,4 +1,4 @@
-package org.mrshoffen.tasktracker.task.manager.model.entity;
+package org.mrshoffen.tasktracker.task.manager.main.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
+import org.mrshoffen.tasktracker.task.manager.sub.model.entity.SubTask;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,12 +18,17 @@ import java.util.UUID;
 @NoArgsConstructor
 
 @NamedEntityGraph(
-        name = "Task.withSubtasks",
-        attributeNodes = @NamedAttributeNode("subtasks")
+        name = "MainTask.withSubtasks",
+        attributeNodes = @NamedAttributeNode("subTasks")
 )
 @Entity
-@Table(name = "tasks")
-public class Task {
+@Table(name = "main_tasks",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"task_board_id", "name"}
+                )
+        })
+public class MainTask {
 
     @Id
     @UuidGenerator
@@ -44,10 +49,10 @@ public class Task {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @JoinColumn(name = "main_task_id")
-    private UUID mainTaskId;
+    @Column(name = "task_board_id", nullable = false)
+    private UUID taskBoardId;
 
-    @OneToMany(mappedBy = "mainTaskId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Task> subtasks = new ArrayList<>();
+    @OneToMany(mappedBy = "mainTask", fetch = FetchType.LAZY)
+    List<SubTask> subTasks;
 
 }
