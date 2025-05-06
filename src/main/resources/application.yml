@@ -23,23 +23,22 @@ kafka-user:
 
 spring:
   application:
-    name: task-manager-ws
+    name: desk-manager-rs
   profiles:
     active: discovery-service-user, postgres-user
   config:
     import: optional:configserver:http://${CONFIG_SERVER_USER}:${CONFIG_SERVER_PASSWORD}@${CONFIG_SERVER_HOST:localhost}:${CONFIG_SERVER_PORT:8012}
 
-  datasource:
+  liquibase:
     url: jdbc:postgresql://${postgres-user.server.url}:${postgres-user.server.port}/${postgres-user.server.database}
-    username: ${postgres-user.credentials.username}
+    user: ${postgres-user.credentials.username}
     password: ${postgres-user.credentials.password}
     driver-class-name: org.postgresql.Driver
-  jpa:
-    open-in-view: false
-    properties.hibernate:
-      show_sql: true
-      format_sql: true
-      hbm2ddl.auto: validate
+
+  r2dbc:
+    url: r2dbc:postgresql://${postgres-user.server.url}:${postgres-user.server.port}/${postgres-user.server.database}
+    username: ${postgres-user.credentials.username}
+    password: ${postgres-user.credentials.password}
 
 server.port: ${PORT:0}
 
