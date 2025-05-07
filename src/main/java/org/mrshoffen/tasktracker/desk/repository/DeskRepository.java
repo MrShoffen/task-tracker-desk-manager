@@ -13,4 +13,8 @@ public interface DeskRepository extends ReactiveCrudRepository<Desk, UUID> {
     Flux<Desk> findAllByUserIdAndWorkspaceId(UUID userId, UUID workspaceId);
 
     Mono<Desk> findByUserIdAndWorkspaceIdAndId(UUID userId, UUID workspaceId, UUID deskId);
+
+    Mono<Desk> findByIdAndWorkspaceId(UUID deskId, UUID workspaceId);
+
+    Flux<Desk> findAllByWorkspaceId(UUID workspaceId);
 }

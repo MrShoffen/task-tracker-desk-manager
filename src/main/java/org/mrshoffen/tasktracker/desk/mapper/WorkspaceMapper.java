@@ -1,4 +1,4 @@
-package org.mrshoffen.tasktracker.desk.util.mapper;
+package org.mrshoffen.tasktracker.desk.mapper;
 
 
 import org.mapstruct.Mapper;
