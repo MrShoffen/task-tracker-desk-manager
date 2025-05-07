@@ -26,9 +26,6 @@ public class Desk {
     @Column("name")
     private String name;
 
-    @Column("description")
-    private String description;
-
     @Column("created_at")
     private Instant createdAt = Instant.now();
 

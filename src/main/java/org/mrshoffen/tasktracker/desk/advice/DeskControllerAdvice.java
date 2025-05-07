@@ -29,8 +29,8 @@ public class DeskControllerAdvice {
 
     @ExceptionHandler(DeskStructureException.class)
     public Mono<ResponseEntity<ProblemDetail>> handleTaskStructureException(DeskStructureException e) {
-        ProblemDetail problem = generateProblemDetail(BAD_REQUEST, e);
-        return Mono.just(ResponseEntity.status(BAD_REQUEST).body(problem));
+        ProblemDetail problem = generateProblemDetail(NOT_FOUND, e);
+        return Mono.just(ResponseEntity.status(NOT_FOUND).body(problem));
     }
 
     @ExceptionHandler(WebExchangeBindException.class)

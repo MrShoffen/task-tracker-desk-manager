@@ -1,9 +1,10 @@
 package org.mrshoffen.tasktracker.desk.service;
 
 import lombok.RequiredArgsConstructor;
+import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.desk.exception.DeskAlreadyExistsException;
+import org.mrshoffen.tasktracker.desk.exception.DeskNotFoundException;
 import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
-import org.mrshoffen.tasktracker.desk.model.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.desk.model.entity.Desk;
 import org.mrshoffen.tasktracker.desk.repository.DeskRepository;
 import org.mrshoffen.tasktracker.desk.util.client.WorkspaceClient;
@@ -27,36 +28,49 @@ public class DeskService {
 
     private final WorkspaceClient workspaceClient;
 
-    public Flux<DeskResponseDto> getAllDesksInWorkspace(String workspace, UUID userId) {
-        return getWorkspaceId(workspace, userId)
-                .flatMapMany(workspaceId ->
+    public Mono<DeskResponseDto> createDesk(DeskCreateDto dto, UUID userId, UUID workspaceId) {
+        return workspaceClient
+                .validateWorkspaceStructure(userId, workspaceId)
+                .then(
+                        Mono.defer(() -> {
+                            Desk desk = workspaceMapper.toDesk(dto, userId, workspaceId);
+                            return deskRepository.save(desk);
+                        })
+                )
+                .onErrorMap(DataIntegrityViolationException.class, e ->
+                        new DeskAlreadyExistsException(
+                                "Доска с именем '%s' уже существует в пространстве '%s'"
+                                        .formatted(dto.name(), workspaceId)
+                        )
+                )
+                .map(workspaceMapper::toDeskResponse);
+    }
+
+    public Flux<DeskResponseDto> getAllDesksInWorkspace(UUID workspaceId, UUID userId) {
+        return workspaceClient
+                .validateWorkspaceStructure(userId, workspaceId)
+                .thenMany(
                         deskRepository
                                 .findAllByUserIdAndWorkspaceId(userId, workspaceId)
                 )
-                .map(desk ->
-                        workspaceMapper
-                                .toDeskResponse(desk, workspace)
+                .map(workspaceMapper::toDeskResponse
                 );
     }
 
-    public Mono<UUID> getWorkspaceId(String workspaceName, UUID userId) {
+    public Mono<DeskResponseDto> getUserDeskInWorkspace(UUID userId, UUID workspaceId, UUID deskId) {
         return workspaceClient
-                .getBoardId(workspaceName, userId);
-
-    }
-
-    public Mono<DeskResponseDto> createDesk(DeskCreateDto dto, UUID userId, String workspaceName) {
-        return getWorkspaceId(workspaceName, userId)
-                .flatMap(workspaceId -> {
-                    Desk desk = workspaceMapper.toDesk(dto, userId, workspaceId);
-                    return deskRepository.save(desk);
-                })
-                .onErrorMap(DataIntegrityViolationException.class, e ->
-                        new DeskAlreadyExistsException(
-                                "Задача с именем '%s' уже существует на доске '%s'"
-                                        .formatted(dto.name(), workspaceName)
+                .validateWorkspaceStructure(userId, workspaceId)
+                .then(
+                        Mono.defer(() ->
+                                deskRepository.findByUserIdAndWorkspaceIdAndId(userId, workspaceId, deskId)
                         )
                 )
-                .map(savedDesk -> workspaceMapper.toDeskResponse(savedDesk, workspaceName));
+                .map(workspaceMapper::toDeskResponse)
+                .switchIfEmpty(
+                        Mono.error(new DeskNotFoundException(
+                                "Доска с id %s не найдена в данном пространстве у пользователя"
+                                        .formatted(deskId.toString())
+                        ))
+                );
     }
 }
