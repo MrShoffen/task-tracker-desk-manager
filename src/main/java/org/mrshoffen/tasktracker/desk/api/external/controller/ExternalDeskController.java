@@ -9,6 +9,7 @@ import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,6 +57,15 @@ public class ExternalDeskController {
         return deskService
                 .getAllDesksInUserWorkspace(workspaceId, userId)
                 .map(linksInjector::injectLinks);
+    }
+
+    @DeleteMapping("/{deskId}")
+    Mono<ResponseEntity<Void>> deleteDesk(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId) {
+        return deskService
+                .deleteUserDesk(userId, workspaceId, deskId)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
 }

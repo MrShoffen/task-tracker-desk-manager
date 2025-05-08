@@ -36,4 +36,8 @@ public class InternalDeskService {
     }
 
 
+    public Mono<Void> deleteAllUsersDesks(UUID userId, UUID workspaceId) {
+        return deskRepository
+                .deleteAllByUserIdAndWorkspaceId(userId, workspaceId);
+    }
 }

@@ -1,11 +1,13 @@
 package org.mrshoffen.tasktracker.desk.api.bff.service;
 
+import com.netflix.appinfo.ApplicationInfoManager;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.desk.mapper.WorkspaceMapper;
 import org.mrshoffen.tasktracker.desk.repository.DeskRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -22,4 +24,11 @@ public class DeskAggregationService {
                 .findAllByWorkspaceId(workspaceId)
                 .map(workspaceMapper::toDeskResponse);
     }
+
+    public Mono<DeskResponseDto> getDeskById(UUID deskId) {
+        return deskRepository
+                .findById(deskId)
+                .map(workspaceMapper::toDeskResponse);
+    }
+
 }

@@ -29,10 +29,20 @@ public class DeskAggregationController {
     /**
      * Необходим для агрегации данных - не требует авторизации и юзера
      */
-    @GetMapping("/{workspaceId}/desks/full")
-    Flux<DeskResponseDto> getAllDesksInWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
+    @GetMapping("/{workspaceId}/desks")
+    Flux<DeskResponseDto> getAllTasksInWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
         return deskService
                 .getAllDesksInWorkspace(workspaceId)
+                .map(linksInjector::injectLinks);
+    }
+
+
+
+    @GetMapping("/{workspaceId}/desks/{deskId}")
+    Mono<DeskResponseDto> getDeskById(@PathVariable("workspaceId") UUID workspaceId,
+                                      @PathVariable("deskId") UUID deskId) {
+        return deskService
+                .getDeskById(deskId)
                 .map(linksInjector::injectLinks);
     }
 
