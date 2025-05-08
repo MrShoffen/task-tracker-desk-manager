@@ -1,6 +1,5 @@
 package org.mrshoffen.tasktracker.desk.api.bff.service;
 
-import com.netflix.appinfo.ApplicationInfoManager;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.desk.mapper.WorkspaceMapper;

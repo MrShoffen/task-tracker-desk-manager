@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.desk.api.external.service.ExternalDeskService;
 import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
+import org.mrshoffen.tasktracker.desk.model.dto.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,6 +68,18 @@ public class ExternalDeskController {
         return deskService
                 .deleteUserDesk(userId, workspaceId, deskId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    @PatchMapping("/{deskId}/order")
+    Mono<DeskResponseDto> updateDeskOrder(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId,
+                                          @Valid @RequestBody Mono<OrderIndexUpdateDto> updateDto) {
+        return updateDto
+                .flatMap(dto ->
+                        deskService.updateDeskOrder(userId, workspaceId, deskId, dto)
+                )
+                .map(linksInjector::injectLinks);
     }
 
 }
