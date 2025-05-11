@@ -1,10 +1,11 @@
-package org.mrshoffen.tasktracker.desk.api.external.controller;
+package org.mrshoffen.tasktracker.desk.controller;
 
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
-import org.mrshoffen.tasktracker.desk.api.external.service.ExternalDeskService;
+import org.mrshoffen.tasktracker.desk.service.DeskService;
+import org.mrshoffen.tasktracker.desk.service.PermissionsService;
 import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 import static org.mrshoffen.tasktracker.commons.web.authentication.AuthenticationAttributes.AUTHORIZED_USER_HEADER_NAME;
+import static org.mrshoffen.tasktracker.commons.web.permissions.Permission.*;
 
 /**
  * Эндпоинты доступные внешнему клиенту (через gateway)
@@ -36,15 +38,19 @@ public class ExternalDeskController {
 
     private final DeskDtoLinksInjector linksInjector;
 
-    private final ExternalDeskService deskService;
+    private final DeskService deskService;
+
+    private final PermissionsService permissionsService;
 
     @PostMapping
     Mono<ResponseEntity<DeskResponseDto>> createDesk(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
                                                      @Valid @RequestBody Mono<DeskCreateDto> createDto,
                                                      @PathVariable("workspaceId") UUID workspaceId) {
-        return createDto
-                .flatMap(dto ->
-                        deskService.createDeskInUserWorkspace(dto, userId, workspaceId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, CREATE_DESK)
+                .then(
+                        createDto.flatMap(dto ->
+                                deskService.createDeskInUserWorkspace(dto, userId, workspaceId))
                 )
                 .map(linksInjector::injectLinks)
                 .map(createdDesk ->
@@ -56,8 +62,11 @@ public class ExternalDeskController {
     @GetMapping
     Flux<DeskResponseDto> getAllDesksInWorkspace(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
                                                  @PathVariable("workspaceId") UUID workspaceId) {
-        return deskService
-                .getAllDesksInUserWorkspace(workspaceId, userId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, READ_WORKSPACE_CONTENT)
+                .thenMany(
+                        deskService.getAllDesksInUserWorkspace(workspaceId)
+                )
                 .map(linksInjector::injectLinks);
     }
 
@@ -65,8 +74,11 @@ public class ExternalDeskController {
     Mono<ResponseEntity<Void>> deleteDesk(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
                                           @PathVariable("workspaceId") UUID workspaceId,
                                           @PathVariable("deskId") UUID deskId) {
-        return deskService
-                .deleteUserDesk(userId, workspaceId, deskId)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, DELETE_DESK)
+                .then(
+                        deskService.deleteUserDesk(workspaceId, deskId)
+                )
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
@@ -75,9 +87,12 @@ public class ExternalDeskController {
                                           @PathVariable("workspaceId") UUID workspaceId,
                                           @PathVariable("deskId") UUID deskId,
                                           @Valid @RequestBody Mono<OrderIndexUpdateDto> updateDto) {
-        return updateDto
-                .flatMap(dto ->
-                        deskService.updateDeskOrder(userId, workspaceId, deskId, dto)
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .then(
+                        updateDto.flatMap(dto ->
+                                deskService.updateDeskOrder(workspaceId, deskId, dto)
+                        )
                 )
                 .map(linksInjector::injectLinks);
     }

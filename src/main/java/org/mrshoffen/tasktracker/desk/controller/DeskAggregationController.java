@@ -1,11 +1,10 @@
-package org.mrshoffen.tasktracker.desk.api.bff.controller;
+package org.mrshoffen.tasktracker.desk.controller;
 
 
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
-import org.mrshoffen.tasktracker.desk.api.bff.service.DeskAggregationService;
+import org.mrshoffen.tasktracker.desk.service.DeskService;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +24,7 @@ public class DeskAggregationController {
 
     private final DeskDtoLinksInjector linksInjector;
 
-    private final DeskAggregationService deskService;
+    private final DeskService deskService;
 
     /**
      * Необходим для агрегации данных - не требует авторизации и юзера
@@ -33,7 +32,7 @@ public class DeskAggregationController {
     @GetMapping("/{workspaceId}/desks")
     Flux<DeskResponseDto> getAllDesksInWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
         return deskService
-                .getAllDesksInWorkspace(workspaceId)
+                .getAllDesksInUserWorkspace(workspaceId)
                 .map(linksInjector::injectLinks);
     }
 
@@ -41,7 +40,7 @@ public class DeskAggregationController {
     Mono<DeskResponseDto> getDeskById(@PathVariable("workspaceId") UUID workspaceId,
                                       @PathVariable("deskId") UUID deskId) {
         return deskService
-                .getDeskById(deskId)
+                .getDeskByIdInWorkspace(workspaceId, deskId)
                 .map(linksInjector::injectLinks);
     }
 }

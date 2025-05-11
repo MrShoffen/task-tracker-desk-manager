@@ -50,6 +50,12 @@ public class DeskDtoLinksInjector extends LinksInjector<DeskResponseDto> {
                         .andMethod("DELETE")
                         .build()
                 )
+                .addLink(Link.forName("updateDeskOrder")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/order"
+                                .formatted(dto.getWorkspaceId(), dto.getId()))
+                        .andMethod("PATCH")
+                        .build()
+                )
                 .addLink(Link.forName("allWorkspaces")
                         .andHref(apiPrefix + "/workspaces")
                         .andMethod("GET")

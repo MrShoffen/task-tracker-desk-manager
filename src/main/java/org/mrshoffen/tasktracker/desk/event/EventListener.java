@@ -4,7 +4,7 @@ package org.mrshoffen.tasktracker.desk.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mrshoffen.tasktracker.commons.kafka.event.workspace.WorkspaceDeletedEvent;
-import org.mrshoffen.tasktracker.desk.api.internal.service.InternalDeskService;
+import org.mrshoffen.tasktracker.desk.service.DeskService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventListener {
 
-    private final InternalDeskService deskService;
+    private final DeskService deskService;
 
     @KafkaListener(topics = WorkspaceDeletedEvent.TOPIC)
-    public void handleRegistrationAttempt(WorkspaceDeletedEvent event) {
+    public void handleWorkspaceDeletedEvent(WorkspaceDeletedEvent event) {
         log.info("Received event in topic {} - {}", WorkspaceDeletedEvent.TOPIC, event);
         deskService
-                .deleteAllUsersDesks(event.getUserId(), event.getWorkspaceId())
+                .deleteAllDesksInWorkspace(event.getWorkspaceId())
                 .block();
     }
 

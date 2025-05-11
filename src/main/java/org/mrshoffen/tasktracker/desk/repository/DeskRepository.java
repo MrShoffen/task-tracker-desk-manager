@@ -14,12 +14,9 @@ public interface DeskRepository extends ReactiveCrudRepository<Desk, UUID> {
     @Query("SELECT COALESCE(MAX(d.order_index), 0) FROM desks d WHERE d.workspace_id = :workspaceId")
     Mono<Long> findMaxOrderIndexInWorkspace(@Param("workspaceId") UUID workspaceId);
 
-    Flux<Desk> findAllByUserIdAndWorkspaceId(UUID userId, UUID workspaceId);
-
-    Mono<Void> deleteAllByUserIdAndWorkspaceId(UUID userId, UUID workspaceId);
+    Mono<Void> deleteAllByWorkspaceId(UUID workspaceId);
 
     Mono<Desk> findByIdAndWorkspaceId(UUID deskId, UUID workspaceId);
 
     Flux<Desk> findAllByWorkspaceId(UUID workspaceId);
-
 }

@@ -1,6 +1,6 @@
 package org.mrshoffen.tasktracker.desk;
 
-import org.mrshoffen.tasktracker.desk.client.WorkspaceClient;
+import org.mrshoffen.tasktracker.desk.client.PermissionsClient;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -18,8 +18,8 @@ public class DeskBeansConfig {
     }
 
     @Bean
-    public WorkspaceClient workspaceClient(WebClient.Builder webClientBuilder) {
-        return new WorkspaceClient(webClientBuilder.baseUrl("http://workspace-manager-rs").build());
+    public PermissionsClient permissionsClient(WebClient.Builder webClientBuilder) {
+        return new PermissionsClient(webClientBuilder.baseUrl("http://user-permission-rs").build());
     }
 
     @Bean
