@@ -29,6 +29,9 @@ public class Desk {
     @Column("created_at")
     private Instant createdAt = Instant.now();
 
+    @Column("color")
+    private String color;
+
     @Column("order_index")
     private Long orderIndex;
 

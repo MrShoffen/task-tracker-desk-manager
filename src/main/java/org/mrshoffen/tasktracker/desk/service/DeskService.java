@@ -5,12 +5,15 @@ import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
 import org.mrshoffen.tasktracker.commons.web.exception.EntityAlreadyExistsException;
 import org.mrshoffen.tasktracker.commons.web.exception.EntityNotFoundException;
 import org.mrshoffen.tasktracker.desk.event.DeskEventPublisher;
-import org.mrshoffen.tasktracker.desk.mapper.WorkspaceMapper;
-import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
-import org.mrshoffen.tasktracker.desk.model.dto.OrderIndexUpdateDto;
+import org.mrshoffen.tasktracker.desk.mapper.DeskMapper;
+import org.mrshoffen.tasktracker.desk.model.dto.create.DeskCreateDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateColorDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateNameDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.desk.model.entity.Desk;
 import org.mrshoffen.tasktracker.desk.repository.DeskRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,7 +26,7 @@ import static org.mrshoffen.tasktracker.commons.utils.OrderIndexGenerator.next;
 @RequiredArgsConstructor
 public class DeskService {
 
-    private final WorkspaceMapper workspaceMapper;
+    private final DeskMapper deskMapper;
 
     private final DeskRepository deskRepository;
 
@@ -34,7 +37,7 @@ public class DeskService {
         return deskRepository
                 .findMaxOrderIndexInWorkspace(workspaceId)
                 .flatMap(currentMaxOrderIndex -> {
-                    Desk desk = workspaceMapper.toDesk(dto, userId, workspaceId);
+                    Desk desk = deskMapper.toDesk(dto, userId, workspaceId);
                     desk.setOrderIndex(next(currentMaxOrderIndex));
                     return deskRepository.save(desk);
                 })
@@ -44,14 +47,14 @@ public class DeskService {
                                         .formatted(dto.name(), workspaceId)
                         )
                 )
-                .map(workspaceMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse);
     }
 
     //safe
     public Flux<DeskResponseDto> getAllDesksInUserWorkspace(UUID workspaceId) {
         return deskRepository
                 .findAllByWorkspaceId(workspaceId)
-                .map(workspaceMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse);
     }
 
     //safe
@@ -72,22 +75,6 @@ public class DeskService {
                 .flatMap(deskRepository::delete);
     }
 
-    public Mono<DeskResponseDto> updateDeskOrder(UUID workspaceId, UUID deskId, OrderIndexUpdateDto orderIndexUpdateDto) {
-        return deskRepository
-                .findByIdAndWorkspaceId(deskId, workspaceId)
-                .switchIfEmpty(
-                        Mono.error(new EntityNotFoundException(
-                                "Доска с id %s не найдена в данном пространстве"
-                                        .formatted(deskId.toString())
-                        ))
-                )
-                .flatMap(desk -> {
-                    desk.setOrderIndex(orderIndexUpdateDto.updatedIndex());
-                    return deskRepository.save(desk);
-                })
-                .map(workspaceMapper::toDeskResponse);
-    }
-
     public Mono<Void> deleteAllDesksInWorkspace(UUID workspaceId) {
         return deskRepository
                 .deleteAllByWorkspaceId(workspaceId);
@@ -96,6 +83,50 @@ public class DeskService {
     public Mono<DeskResponseDto> getDeskByIdInWorkspace(UUID workspaceId, UUID deskId) {
         return deskRepository
                 .findByIdAndWorkspaceId(deskId, workspaceId)
-                .map(workspaceMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse);
+    }
+
+    public Mono<DeskResponseDto> updateDeskOrder(UUID workspaceId, UUID deskId, OrderIndexUpdateDto orderIndexUpdateDto) {
+        return getDeskOrThrow(workspaceId, deskId)
+                .flatMap(desk -> {
+                    desk.setOrderIndex(orderIndexUpdateDto.updatedIndex());
+                    return deskRepository.save(desk);
+                })
+                .map(deskMapper::toDeskResponse);
+    }
+
+    public Mono<DeskResponseDto> updateDeskName(UUID workspaceId, UUID deskId, DeskUpdateNameDto dto) {
+        return getDeskOrThrow(workspaceId, deskId)
+                .flatMap(desk -> {
+                    desk.setName(dto.newName());
+                    return deskRepository.save(desk);
+                })
+                .onErrorMap(DuplicateKeyException.class, e ->
+                        new EntityAlreadyExistsException(
+                                "Доска с именем '%s' уже существует"
+                                        .formatted(dto.newName())
+                        )
+                )
+                .map(deskMapper::toDeskResponse);
+    }
+
+    public Mono<DeskResponseDto> updateDeskColor(UUID workspaceId, UUID deskId, DeskUpdateColorDto dto) {
+        return getDeskOrThrow(workspaceId, deskId)
+                .flatMap(desk -> {
+                    desk.setColor(dto.newColor());
+                    return deskRepository.save(desk);
+                })
+                .map(deskMapper::toDeskResponse);
+    }
+
+    private Mono<Desk> getDeskOrThrow(UUID workspaceId, UUID deskId) {
+        return deskRepository
+                .findByIdAndWorkspaceId(deskId, workspaceId)
+                .switchIfEmpty(
+                        Mono.error(new EntityNotFoundException(
+                                "Доска с id %s не найдена в данном пространстве"
+                                        .formatted(deskId.toString())
+                        ))
+                );
     }
 }

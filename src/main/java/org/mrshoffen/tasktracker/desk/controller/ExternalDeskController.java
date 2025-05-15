@@ -4,10 +4,12 @@ package org.mrshoffen.tasktracker.desk.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateColorDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateNameDto;
 import org.mrshoffen.tasktracker.desk.service.DeskService;
 import org.mrshoffen.tasktracker.desk.service.PermissionsService;
-import org.mrshoffen.tasktracker.desk.model.dto.DeskCreateDto;
-import org.mrshoffen.tasktracker.desk.model.dto.OrderIndexUpdateDto;
+import org.mrshoffen.tasktracker.desk.model.dto.create.DeskCreateDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,6 +98,37 @@ public class ExternalDeskController {
                 )
                 .map(linksInjector::injectLinks);
     }
+
+    @PatchMapping("/{deskId}/name")
+    Mono<DeskResponseDto> updateDeskName(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                         @PathVariable("workspaceId") UUID workspaceId,
+                                         @PathVariable("deskId") UUID deskId,
+                                         @Valid @RequestBody Mono<DeskUpdateNameDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .then(
+                        updateDto.flatMap(dto ->
+                                deskService.updateDeskName(workspaceId, deskId, dto)
+                        )
+                )
+                .map(linksInjector::injectLinks);
+    }
+
+    @PatchMapping("/{deskId}/color")
+    Mono<DeskResponseDto> updateDeskColor(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
+                                         @PathVariable("workspaceId") UUID workspaceId,
+                                         @PathVariable("deskId") UUID deskId,
+                                         @Valid @RequestBody Mono<DeskUpdateColorDto> updateDto) {
+        return permissionsService
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .then(
+                        updateDto.flatMap(dto ->
+                                deskService.updateDeskColor(workspaceId, deskId, dto)
+                        )
+                )
+                .map(linksInjector::injectLinks);
+    }
+
 
 }
 

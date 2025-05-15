@@ -56,6 +56,18 @@ public class DeskDtoLinksInjector extends LinksInjector<DeskResponseDto> {
                         .andMethod("PATCH")
                         .build()
                 )
+                .addLink(Link.forName("updateDeskName")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/name"
+                                .formatted(dto.getWorkspaceId(), dto.getId()))
+                        .andMethod("PATCH")
+                        .build()
+                )
+                .addLink(Link.forName("updateDeskColor")
+                        .andHref(apiPrefix + "/workspaces/%s/desks/%s/color"
+                                .formatted(dto.getWorkspaceId(), dto.getId()))
+                        .andMethod("PATCH")
+                        .build()
+                )
                 .addLink(Link.forName("allWorkspaces")
                         .andHref(apiPrefix + "/workspaces")
                         .andMethod("GET")

@@ -1,4 +1,4 @@
-package org.mrshoffen.tasktracker.desk.model.dto;
+package org.mrshoffen.tasktracker.desk.model.dto.edit;
 
 import jakarta.validation.constraints.NotNull;
 
