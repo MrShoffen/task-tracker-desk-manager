@@ -90,7 +90,7 @@ public class ExternalDeskController {
                                           @PathVariable("deskId") UUID deskId,
                                           @Valid @RequestBody Mono<OrderIndexUpdateDto> updateDto) {
         return permissionsService
-                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK_ORDER)
                 .then(
                         updateDto.flatMap(dto ->
                                 deskService.updateDeskOrder(workspaceId, deskId, dto)
@@ -105,7 +105,7 @@ public class ExternalDeskController {
                                          @PathVariable("deskId") UUID deskId,
                                          @Valid @RequestBody Mono<DeskUpdateNameDto> updateDto) {
         return permissionsService
-                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK_NAME)
                 .then(
                         updateDto.flatMap(dto ->
                                 deskService.updateDeskName(workspaceId, deskId, dto)
@@ -120,7 +120,7 @@ public class ExternalDeskController {
                                          @PathVariable("deskId") UUID deskId,
                                          @Valid @RequestBody Mono<DeskUpdateColorDto> updateDto) {
         return permissionsService
-                .verifyUserPermission(userId, workspaceId, UPDATE_DESK)
+                .verifyUserPermission(userId, workspaceId, UPDATE_DESK_COLOR)
                 .then(
                         updateDto.flatMap(dto ->
                                 deskService.updateDeskColor(workspaceId, deskId, dto)

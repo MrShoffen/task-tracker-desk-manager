@@ -101,6 +101,7 @@ public class DeskService {
                     desk.setName(dto.newName());
                     return deskRepository.save(desk);
                 })
+
                 .onErrorMap(DuplicateKeyException.class, e ->
                         new EntityAlreadyExistsException(
                                 "Доска с именем '%s' уже существует"
