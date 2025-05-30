@@ -12,3 +12,7 @@ CREATE TABLE IF NOT EXISTS desks
     workspace_id UUID         NOT NULL,
     UNIQUE (workspace_id, name)
 );
+
+CREATE INDEX IF NOT EXISTS desks_workspace_id_id_idx ON desks (id, workspace_id);
+
+CREATE INDEX IF NOT EXISTS desks_workspace_id_idx ON desks (workspace_id);
