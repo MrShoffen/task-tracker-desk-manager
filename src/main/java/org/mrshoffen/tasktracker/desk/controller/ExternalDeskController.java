@@ -4,13 +4,12 @@ package org.mrshoffen.tasktracker.desk.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mrshoffen.tasktracker.commons.web.dto.DeskResponseDto;
+import org.mrshoffen.tasktracker.desk.model.dto.create.DeskCreateDto;
 import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateColorDto;
 import org.mrshoffen.tasktracker.desk.model.dto.edit.DeskUpdateNameDto;
+import org.mrshoffen.tasktracker.desk.model.dto.edit.OrderIndexUpdateDto;
 import org.mrshoffen.tasktracker.desk.service.DeskService;
 import org.mrshoffen.tasktracker.desk.service.PermissionsService;
-import org.mrshoffen.tasktracker.desk.model.dto.create.DeskCreateDto;
-import org.mrshoffen.tasktracker.desk.model.dto.edit.OrderIndexUpdateDto;
-import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,8 +37,6 @@ import static org.mrshoffen.tasktracker.commons.web.permissions.Permission.*;
 @RequestMapping("/workspaces/{workspaceId}/desks")
 public class ExternalDeskController {
 
-    private final DeskDtoLinksInjector linksInjector;
-
     private final DeskService deskService;
 
     private final PermissionsService permissionsService;
@@ -54,7 +51,6 @@ public class ExternalDeskController {
                         createDto.flatMap(dto ->
                                 deskService.createDeskInUserWorkspace(dto, userId, workspaceId))
                 )
-                .map(linksInjector::injectLinks)
                 .map(createdDesk ->
                         ResponseEntity.status(HttpStatus.CREATED)
                                 .body(createdDesk)
@@ -68,8 +64,7 @@ public class ExternalDeskController {
                 .verifyUserPermission(userId, workspaceId, READ_WORKSPACE_CONTENT)
                 .thenMany(
                         deskService.getAllDesksInUserWorkspace(workspaceId)
-                )
-                .map(linksInjector::injectLinks);
+                );
     }
 
     @DeleteMapping("/{deskId}")
@@ -93,10 +88,9 @@ public class ExternalDeskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_DESK_ORDER)
                 .then(
                         updateDto.flatMap(dto ->
-                                deskService.updateDeskOrder(workspaceId, deskId, dto)
+                                deskService.updateDeskOrder(workspaceId, deskId, dto, userId)
                         )
-                )
-                .map(linksInjector::injectLinks);
+                );
     }
 
     @PatchMapping("/{deskId}/name")
@@ -108,25 +102,23 @@ public class ExternalDeskController {
                 .verifyUserPermission(userId, workspaceId, UPDATE_DESK_NAME)
                 .then(
                         updateDto.flatMap(dto ->
-                                deskService.updateDeskName(workspaceId, deskId, dto)
+                                deskService.updateDeskName(workspaceId, deskId, dto, userId)
                         )
-                )
-                .map(linksInjector::injectLinks);
+                );
     }
 
     @PatchMapping("/{deskId}/color")
     Mono<DeskResponseDto> updateDeskColor(@RequestHeader(AUTHORIZED_USER_HEADER_NAME) UUID userId,
-                                         @PathVariable("workspaceId") UUID workspaceId,
-                                         @PathVariable("deskId") UUID deskId,
-                                         @Valid @RequestBody Mono<DeskUpdateColorDto> updateDto) {
+                                          @PathVariable("workspaceId") UUID workspaceId,
+                                          @PathVariable("deskId") UUID deskId,
+                                          @Valid @RequestBody Mono<DeskUpdateColorDto> updateDto) {
         return permissionsService
                 .verifyUserPermission(userId, workspaceId, UPDATE_DESK_COLOR)
                 .then(
                         updateDto.flatMap(dto ->
-                                deskService.updateDeskColor(workspaceId, deskId, dto)
+                                deskService.updateDeskColor(workspaceId, deskId, dto, userId)
                         )
-                )
-                .map(linksInjector::injectLinks);
+                );
     }
 
 

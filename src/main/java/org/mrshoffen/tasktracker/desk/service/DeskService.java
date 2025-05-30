@@ -31,6 +31,7 @@ public class DeskService {
     private final DeskRepository deskRepository;
 
     private final DeskEventPublisher eventPublisher;
+    private final DeskEventPublisher deskEventPublisher;
 
     //safe
     public Mono<DeskResponseDto> createDeskInUserWorkspace(DeskCreateDto dto, UUID userId, UUID workspaceId) {
@@ -47,7 +48,8 @@ public class DeskService {
                                         .formatted(dto.name(), workspaceId)
                         )
                 )
-                .map(deskMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse)
+                .doOnSuccess(eventPublisher::publishDeskCreatedEvent);
     }
 
     //safe
@@ -80,22 +82,20 @@ public class DeskService {
                 .deleteAllByWorkspaceId(workspaceId);
     }
 
-    public Mono<DeskResponseDto> getDeskByIdInWorkspace(UUID workspaceId, UUID deskId) {
-        return deskRepository
-                .findByIdAndWorkspaceId(deskId, workspaceId)
-                .map(deskMapper::toDeskResponse);
-    }
 
-    public Mono<DeskResponseDto> updateDeskOrder(UUID workspaceId, UUID deskId, OrderIndexUpdateDto orderIndexUpdateDto) {
+    public Mono<DeskResponseDto> updateDeskOrder(UUID workspaceId, UUID deskId, OrderIndexUpdateDto dto, UUID userId) {
         return getDeskOrThrow(workspaceId, deskId)
                 .flatMap(desk -> {
-                    desk.setOrderIndex(orderIndexUpdateDto.updatedIndex());
+                    desk.setOrderIndex(dto.updatedIndex());
                     return deskRepository.save(desk);
                 })
-                .map(deskMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse)
+                .doOnSuccess(desk -> deskEventPublisher
+                        .publishDeskUpdatedEvent(workspaceId, deskId, "orderIndex", dto.updatedIndex(), userId));
+
     }
 
-    public Mono<DeskResponseDto> updateDeskName(UUID workspaceId, UUID deskId, DeskUpdateNameDto dto) {
+    public Mono<DeskResponseDto> updateDeskName(UUID workspaceId, UUID deskId, DeskUpdateNameDto dto, UUID userId) {
         return getDeskOrThrow(workspaceId, deskId)
                 .flatMap(desk -> {
                     desk.setName(dto.newName());
@@ -108,16 +108,22 @@ public class DeskService {
                                         .formatted(dto.newName())
                         )
                 )
-                .map(deskMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse)
+                .doOnSuccess(desk -> deskEventPublisher
+                        .publishDeskUpdatedEvent(workspaceId, deskId, "name", dto.newName(), userId));
+
     }
 
-    public Mono<DeskResponseDto> updateDeskColor(UUID workspaceId, UUID deskId, DeskUpdateColorDto dto) {
+    public Mono<DeskResponseDto> updateDeskColor(UUID workspaceId, UUID deskId, DeskUpdateColorDto dto, UUID userId) {
         return getDeskOrThrow(workspaceId, deskId)
                 .flatMap(desk -> {
                     desk.setColor(dto.newColor());
                     return deskRepository.save(desk);
                 })
-                .map(deskMapper::toDeskResponse);
+                .map(deskMapper::toDeskResponse)
+                .doOnSuccess(desk -> deskEventPublisher
+                        .publishDeskUpdatedEvent(workspaceId, deskId, "color", dto.newColor(), userId));
+
     }
 
     private Mono<Desk> getDeskOrThrow(UUID workspaceId, UUID deskId) {

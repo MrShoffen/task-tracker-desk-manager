@@ -1,8 +1,6 @@
 package org.mrshoffen.tasktracker.desk;
 
 import org.mrshoffen.tasktracker.desk.client.PermissionsClient;
-import org.mrshoffen.tasktracker.desk.model.dto.links.DeskDtoLinksInjector;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +20,4 @@ public class DeskBeansConfig {
         return new PermissionsClient(webClientBuilder.baseUrl("http://user-permission-rs").build());
     }
 
-    @Bean
-    DeskDtoLinksInjector deskDtoLinksInjector(@Value("${app.gateway.api-prefix}") String apiPrefix) {
-        return new DeskDtoLinksInjector(apiPrefix);
-    }
 }
