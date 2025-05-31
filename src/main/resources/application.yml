@@ -60,7 +60,7 @@ spring:
       max-size: 10
       max-acquire-time: 15s
 
-server.port: ${PORT:0}
+server.port: ${PORT:8080}
 
 
 eureka:
@@ -72,3 +72,16 @@ eureka:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 
 
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoint:
+    metrics:
+      access: read_only
+    prometheus:
+      access: read_only
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, metrics
